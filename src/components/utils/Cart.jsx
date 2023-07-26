@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Add, Remove, Discount, Close, Check, Send } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
-import { Box, Card, CardMedia, Typography, Button, Grid, TextField, Divider, Alert, IconButton, Badge, Zoom, Snackbar, Slide } from '@mui/material'
+import { Box, Card, CardMedia, Typography, Button, Grid, TextField, Divider, Alert, IconButton, Badge, Zoom, Slide } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { toRupiah } from '.'
 import { addCart, addNewOrder, cancelOrder, changeCatatan, getVouchers, removeCart } from '../../stores/slices/cartSlice'
