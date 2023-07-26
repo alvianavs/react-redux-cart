@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
 import { Add, Remove, Discount, Close, Check, Send } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
-import { Box, Card, CardMedia, Typography, Button, Grid, TextField, Divider, Alert, IconButton, Badge, Zoom, Snackbar } from '@mui/material'
+import { Box, Card, CardMedia, Typography, Button, Grid, TextField, Divider, Alert, IconButton, Badge, Zoom, Snackbar, Slide } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { toRupiah } from '.'
 import { addCart, addNewOrder, cancelOrder, changeCatatan, getVouchers, removeCart } from '../../stores/slices/cartSlice'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'react-hot-toast'
 
 const Cart = () => {
 	const dispatch = useDispatch()
@@ -15,7 +16,7 @@ const Cart = () => {
 	const [openAlert, setOpenAlert] = useState(false)
 	const [selectKode, setSelectKode] = useState(false)
 	const [discount, setDiscount] = useState(0)
-	const [orderStatus, setOrderStatus] = useState({ id: null, status: false, isCancel: false, snackbar: false, message: '' })
+	const [orderId, setOrderId] = useState(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const inputKodeRef = useRef('')
 
@@ -53,13 +54,49 @@ const Cart = () => {
 		setDiscount(discount)
 	}
 
+	const AlertOrder = forwardRef(function AlertOrder({ severity, message, toastId }, ref) {
+		return (
+			<Alert
+				ref={ref}
+				severity={severity}
+				variant='filled'
+				action={
+					severity === 'success' ? (
+						<Button variant='contained' color='info' size='small' onClick={handleCancelOrder}>
+							CANCEL
+						</Button>
+					) : (
+						<IconButton
+							aria-label='close'
+							color='inherit'
+							size='small'
+							onClick={() => toast.dismiss(toastId)}
+						>
+							<Close fontSize='inherit' />
+						</IconButton>
+					)
+				}
+			>
+				<Box sx={{ pr: 6 }}>{message}</Box>
+			</Alert>
+		);
+	});
+
+
 	const handleOrder = async () => {
 		setIsLoading(true)
 		try {
 			const res = await dispatch(addNewOrder({ discount, totalPrice, items: carts }))
-			if (res.payload.status_code === 200) {
-				setOrderStatus({ ...orderStatus, id: res.payload.id, status: true, snackbar: true, message: res.payload.message })
-			} else setOrderStatus({ ...orderStatus, id: null, status: false, snackbar: true, message: res.payload.message })
+			setOrderId(res.payload.id)
+			toast.custom((t) => (
+				<Slide direction='left' in={t.visible} mountOnEnter unmountOnExit>
+					{res.payload.status_code === 200 ? (
+						<AlertOrder ref={t.ref} severity={'success'} message={res.payload.message} toastId={t.id} />
+					) : (
+						<AlertOrder ref={t.ref} severity={'warning'} message={res.payload.message} toastId={t.id} />
+					)}
+				</Slide>
+			), { duration: 2000 })
 		} catch (err) {
 			console.log(err)
 		} finally {
@@ -68,12 +105,13 @@ const Cart = () => {
 	}
 
 	const handleCancelOrder = async () => {
-        setOrderStatus({snackbar: false, status: false})
 		try {
-            const res = await dispatch(cancelOrder(orderStatus.id))
-            if (res.payload.status_code === 200) {
-                setOrderStatus({...orderStatus, status: true, isCancel: true, snackbar: true, message: res.payload.message})
-            }
+			const res = await dispatch(cancelOrder(orderId))
+			toast.custom((t) => (
+				<Slide direction='left' in={t.visible} mountOnEnter unmountOnExit>
+					<AlertOrder ref={t.ref} severity={'warning'} message={res.payload.message} toastId={t.id} />
+				</Slide>
+			))
 		} catch (err) {
 			console.log(err)
 		}
@@ -245,36 +283,6 @@ const Cart = () => {
 					<span>Buat Pesanan</span>
 				</LoadingButton>
 			</Box>
-
-			<Snackbar
-				autoHideDuration={2500}
-				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-				open={orderStatus.snackbar}
-				onClose={() => setOrderStatus({ snackbar: false })}
-			>
-				<Alert
-					severity={!orderStatus.status && !orderStatus.isCancel ? 'warning' : 'success'}
-					variant='filled'
-					action={
-						orderStatus.status && !orderStatus.isCancel? (
-							<Button variant='contained' color='info' size='small' onClick={handleCancelOrder}>
-								CANCEL
-							</Button>
-						) : (
-							<IconButton
-								aria-label='close'
-								color='inherit'
-								size='small'
-                                onClick={() => setOrderStatus({snackbar: false})}
-							>
-								<Close fontSize='inherit' />
-							</IconButton>
-						)
-					}
-				>
-					<Box sx={{ pr: 6 }}>{orderStatus.message}</Box>
-				</Alert>
-			</Snackbar>
 		</>
 	)
 }

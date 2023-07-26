@@ -4,6 +4,7 @@ import ThemeMui from './ThemeMui'
 import { store, persistor } from './stores/store'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
 	return (
@@ -12,6 +13,7 @@ function App() {
 				<PersistGate loading={null} persistor={persistor}>
 					<Typography component={'span'}>
 						<Routing />
+						<Toaster position='top-right' />
 					</Typography>
 				</PersistGate>
 			</Provider>
