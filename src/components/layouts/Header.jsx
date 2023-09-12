@@ -12,7 +12,7 @@ const Header = () => {
 
 	const toggleDrawer = (open) => (event) => {
 		if (event && event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) return
-		setOpenCart({ ...openCart, [position]: open })
+		setOpenCart(open)
 	}
 
 	const TitleHeader = () => {
@@ -39,7 +39,7 @@ const Header = () => {
 							Keranjang
 						</Button>
 					</Badge>
-					<Drawer anchor={position} open={openCart[position]} onClose={toggleDrawer(false)}>
+					<Drawer anchor={position} open={openCart} onClose={toggleDrawer(false)}>
 						<Box sx={{ display: 'flex', justifyContent: 'space-between', minWidth: 400, p: 2.5 }}>
 							<TitleHeader />
 							<IconButton onClick={toggleDrawer(false)}>
